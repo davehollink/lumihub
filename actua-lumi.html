@@ -12,7 +12,7 @@
 </head>
 <body class="animated-bg h-screen w-screen overflow-hidden flex items-center justify-center relative">
 
-    <button onclick="window.location.href='hub.html'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
+    <button onclick="window.location.href='https://lumihub-five.vercel.app'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
         🏠 Terug naar Hub
     </button>
     
@@ -80,7 +80,7 @@
             
             <div class="mt-8 text-center flex gap-4 justify-center">
                 <button onclick="closePackOverlay()" class="text-gray-300 underline text-sm hover:text-white">Terug naar Lumi</button>
-                <button onclick="window.location.href='hub.html'" class="text-[#FFD700] font-bold underline text-sm hover:text-white">Naar de Hub & Album</button>
+                <button onclick="window.location.href='https://lumihub-five.vercel.app'" class="text-[#FFD700] font-bold underline text-sm hover:text-white">Naar de Hub & Album</button>
             </div>
         </div>
     </div>
@@ -89,7 +89,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase configuratie
         const firebaseConfig = {
             apiKey: "AIzaSyBoohDPXVol8kLllJ6ox28xOfQd5fBdLc8",
             authDomain: "lumi-binnenstebuiten.firebaseapp.com",
@@ -103,8 +102,7 @@
         const db = getFirestore(app);
         const currentLumiID = sessionStorage.getItem('lumi_user_id');
 
-        // Forceer login via Hub
-        if(!currentLumiID) { window.location.href = 'hub.html'; }
+        if(!currentLumiID) { window.location.href = 'https://lumihub-five.vercel.app'; }
 
         const allCards = [
             "Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg",
@@ -125,7 +123,6 @@
         let rewardClaimed = false; 
         let currentCardFilename = "";
 
-        // Firebase Opslag Functie
         window.addToCollection = async function(filename) {
             const userRef = doc(db, "users", currentLumiID);
             try {
@@ -138,7 +135,6 @@
             }
         }
 
-        // --- PACK OPENING LOGICA ---
         window.startRewardSequence = function() {
             if (rewardClaimed) return;
             document.getElementById('pack-overlay').style.display = 'flex';
@@ -179,10 +175,9 @@
                 const selectedCardFilename = allCards[randomIndex];
                 currentCardFilename = selectedCardFilename;
                 
-                // Opslaan in Firebase
                 window.addToCollection(selectedCardFilename);
 
-                cardImg.src = selectedCardFilename; // Direct uit hoofdmap
+                cardImg.src = selectedCardFilename;
                 const niceName = selectedCardFilename.replace("Lumi - ", "").replace(".jpeg", "").replace(".jpg", "");
                 cardName.innerText = niceName;
 
@@ -205,7 +200,6 @@
 
         window.closePackOverlay = function() { document.getElementById('pack-overlay').style.display = 'none'; }
 
-        // --- CHAT LOGICA ---
         const setupQuestions = [{ key: 'name', text: "Hoe-hoe! Welkom bij de Actuakring. Ik ben Lumi. Hoe heet jij?" }, { key: 'link', text: "Hoi {name}! Over welk artikel gaan we het hebben? Plak hier de link (URL) van het Jeugdjournaal of de nieuwswebsite." }, { key: 'confirm_title', text: "Ik heb naar de link gekeken. Ik denk dat de titel is: <br><strong>'{detected}'</strong><br>Klopt dat? (Druk op 'Ja' of typ zelf de goede titel)" }];
         const mandatoryAnalysisStart = [{ key: 'summary', text: "Laten we beginnen bij het begin. Waar gaat dit nieuwsbericht in het kort over? Vertel het in je eigen woorden." }];
         const questionPool = [
@@ -315,7 +309,7 @@
 
             if (action === 'yes') {
                 userInput.value = "Ja, de titel klopt!";
-                handleInput();
+                window.handleInput();
             } else {
                 userInput.disabled = false;
                 sendBtn.disabled = false;
@@ -454,18 +448,28 @@
         function undoLastStep(userMessageDiv, stepToUndo) {
             clearTimeout(typeWriterTimeout);
             userMessageDiv.remove();
+            
             const lastLumi = document.querySelector('.lumi-message-container:last-child');
             if(lastLumi) lastLumi.remove();
+
             step = stepToUndo; 
             const keyToReset = currentSessionQuestions[step].key;
             delete answers[keyToReset];
-            if (keyToReset === 'name') { userName = ""; readerNameDisplay.innerText = "-"; }
-            let displayCount = step - 2; if (displayCount < 1) displayCount = "Start";
+
+            if (keyToReset === 'name') {
+                userName = "";
+                readerNameDisplay.innerText = "-";
+            }
+
+            let displayCount = step - 2; 
+            if (displayCount < 1) displayCount = "Start";
             questionCountDisplay.innerText = displayCount;
+
             userInput.disabled = false;
             sendBtn.disabled = false;
             userInput.placeholder = "Typ opnieuw...";
             userInput.focus();
+            
             let txt = currentSessionQuestions[step].text.replace("{name}", userName);
             if (currentSessionQuestions[step].key === 'confirm_title') {
                 txt = txt.replace("{detected}", answers['link'] ? extractTitleFromUrl(answers['link']) : '...');
@@ -503,68 +507,119 @@
         window.generatePDF = async function() {
             const doc = new jsPDF();
             const donkerGroen = [0, 109, 51];
+            
             doc.setFillColor(...donkerGroen);
             doc.rect(0, 0, 210, 40, 'F');
+            
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
             doc.setFont("helvetica", "bold");
             doc.text("LUMI'S ACTUAKRING", 105, 20, { align: 'center' }); 
+            
             doc.setFontSize(14);
             doc.setFont("helvetica", "normal");
             doc.text("IKC Binnenstebuiten", 105, 32, { align: 'center' }); 
-            doc.setTextColor(0, 0, 0); doc.setFontSize(11);
-            doc.setFont("helvetica", "bold"); doc.text("Reporter:", 20, 50);
-            doc.setFont("helvetica", "normal"); doc.text(userName, 50, 50);
-            doc.setFont("helvetica", "bold"); doc.text("Datum:", 20, 57);
-            doc.setFont("helvetica", "normal"); doc.text(new Date().toLocaleDateString('nl-NL'), 50, 57);
+
+            doc.setTextColor(0, 0, 0); 
+            doc.setFontSize(11);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Reporter:", 20, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(userName, 50, 50);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Datum:", 20, 57);
+            doc.setFont("helvetica", "normal");
+            doc.text(new Date().toLocaleDateString('nl-NL'), 50, 57);
+
             const displayTitle = answers['title'] || "Nieuwsbericht";
-            doc.setFont("helvetica", "bold"); doc.text("Onderwerp:", 20, 64);
-            doc.setFont("helvetica", "normal"); doc.text(displayTitle, 50, 64);
+            doc.setFont("helvetica", "bold");
+            doc.text("Onderwerp:", 20, 64);
+            doc.setFont("helvetica", "normal");
+            doc.text(displayTitle, 50, 64);
+
             const displayLink = answers['link'] || "";
-            let fullLink = displayLink; if (fullLink && !fullLink.startsWith('http')) { fullLink = 'https://' + fullLink; }
+            let fullLink = displayLink;
+            if (fullLink && !fullLink.startsWith('http')) {
+                fullLink = 'https://' + fullLink;
+            }
             const shortLink = displayLink.length > 50 ? displayLink.substring(0, 47) + "..." : displayLink;
-            doc.setFont("helvetica", "bold"); doc.text("Link:", 20, 71);
-            doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 255);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Link:", 20, 71);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 255);
             doc.textWithLink(shortLink, 50, 71, { url: fullLink });
             doc.setTextColor(0, 0, 0);
 
             let y = 85;
-            const pageHeight = 297; const marginBottom = 20; const maxLineWidth = 170; const leftMargin = 20;
+            const pageHeight = 297;
+            const marginBottom = 20;
+            const maxLineWidth = 170;
+            const leftMargin = 20;
 
             for (let i = 3; i < currentSessionQuestions.length; i++) {
                 const qObj = currentSessionQuestions[i];
-                doc.setFont("helvetica", "bold"); doc.setTextColor(0, 109, 51);
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 109, 51);
                 const questionClean = qObj.text.replace("{name}", userName);
                 const questionLines = doc.splitTextToSize(questionClean, maxLineWidth);
                 const questionHeight = questionLines.length * 7;
-                doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 0);
                 const answerText = answers[qObj.key] || "-";
                 const answerLines = doc.splitTextToSize(answerText, maxLineWidth);
                 const answerHeight = answerLines.length * 7;
+
                 const blockHeight = questionHeight + answerHeight + 10;
-                if (y + blockHeight > (pageHeight - marginBottom)) { doc.addPage(); y = 20; }
-                doc.setFont("helvetica", "bold"); doc.setTextColor(0, 109, 51);
-                doc.text(questionLines, leftMargin, y); y += questionHeight;
-                doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
-                doc.text(answerLines, leftMargin, y); y += answerHeight + 5;
+
+                if (y + blockHeight > (pageHeight - marginBottom)) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 109, 51);
+                doc.text(questionLines, leftMargin, y);
+                y += questionHeight;
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 0);
+                doc.text(answerLines, leftMargin, y);
+                y += answerHeight + 5;
             }
 
             if (y > 260) { doc.addPage(); y = 20; }
-            doc.setDrawColor(239, 125, 0); doc.setLineWidth(1); doc.line(20, 275, 190, 275);
-            doc.setFontSize(10); doc.setFont("helvetica", "italic"); doc.setTextColor(80, 80, 80);
+            doc.setDrawColor(239, 125, 0);
+            doc.setLineWidth(1);
+            doc.line(20, 275, 190, 275);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(80, 80, 80);
             doc.text("Vergeet niet dit verslag in te leveren bij (of te laten zien aan) je leerkracht!", 105, 282, { align: 'center' });
 
             if (currentCardFilename) {
-                getDataUri(currentCardFilename, function(dataUri) { // Geen 'cards/' map prefix
+                getDataUri(currentCardFilename, function(dataUri) { 
                     if(dataUri) {
-                        doc.addPage(); doc.setFillColor(...donkerGroen); doc.rect(0, 0, 210, 297, 'F');
-                        doc.setTextColor(255, 255, 255); doc.setFontSize(24); doc.setFont("helvetica", "bold");
+                        doc.addPage();
+                        doc.setFillColor(...donkerGroen);
+                        doc.rect(0, 0, 210, 297, 'F');
+                        
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(24);
+                        doc.setFont("helvetica", "bold");
                         doc.text("JOUW VERDIENDE BELONING", 105, 30, { align: 'center' });
+                        
                         doc.addImage(dataUri, 'JPEG', 35, 50, 140, 200);
                     }
                     doc.save(`Verslag_${userName}.pdf`);
                 });
-            } else { doc.save(`Verslag_${userName}.pdf`); }
+            } else {
+                doc.save(`Verslag_${userName}.pdf`);
+            }
         }
 
         window.lumiPoke = function() { document.getElementById('lumi-img').classList.add('shake'); setTimeout(()=>document.getElementById('lumi-img').classList.remove('shake'),500); }

@@ -12,7 +12,7 @@
 </head>
 <body class="animated-bg h-screen w-screen overflow-hidden flex items-center justify-center relative">
 
-    <button onclick="window.location.href='hub.html'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
+    <button onclick="window.location.href='https://lumihub-five.vercel.app'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
         🏠 Terug naar Hub
     </button>
 
@@ -50,11 +50,11 @@
             </div>
 
             <div class="w-full flex gap-2 mt-4 md:mt-0">
-                <button onclick="backToMenu()" class="btn-jelly flex-1 bg-white text-[#006d33] hover:bg-[#e8f5e9] py-3 rounded-xl font-bold shadow-sm border border-[#006d33]/20 transition text-sm flex flex-col items-center justify-center gap-1">
+                <button onclick="window.backToMenu()" class="btn-jelly flex-1 bg-white text-[#006d33] hover:bg-[#e8f5e9] py-3 rounded-xl font-bold shadow-sm border border-[#006d33]/20 transition text-sm flex flex-col items-center justify-center gap-1">
                     <span class="text-xl">🔄</span>
                     <span>Oefenen</span>
                 </button>
-                <button onclick="startQuizSetup()" class="btn-jelly flex-1 bg-gradient-to-r from-[#ef7d00] to-[#ff9f43] text-white hover:shadow-lg py-3 rounded-xl font-bold shadow-md transition text-sm flex flex-col items-center justify-center gap-1 border-t border-white/30">
+                <button onclick="window.startQuizSetup()" class="btn-jelly flex-1 bg-gradient-to-r from-[#ef7d00] to-[#ff9f43] text-white hover:shadow-lg py-3 rounded-xl font-bold shadow-md transition text-sm flex flex-col items-center justify-center gap-1 border-t border-white/30">
                     <span class="text-xl">📝</span>
                     <span>Toets</span>
                 </button>
@@ -62,14 +62,16 @@
         </aside>
 
         <section class="flex-1 flex flex-col relative bg-white/30 h-full">
-            <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide scroll-smooth"></div>
+            
+            <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide scroll-smooth">
+                </div>
 
             <div class="w-full p-6 bg-gradient-to-t from-white/80 to-transparent z-20">
                 <div id="options-container" class="hidden flex flex-wrap gap-2 justify-center mb-4"></div>
 
                 <div class="flex items-center gap-2 bg-white rounded-full p-2 pl-6 shadow-xl border border-gray-100 ring-4 ring-transparent focus-within:ring-[#ef7d00]/20 transition-all">
                     <input type="text" id="user-input" class="flex-1 bg-transparent border-none outline-none text-lg text-gray-700 placeholder-gray-400 font-semibold" placeholder="Typ je antwoord..." autocomplete="off">
-                    <button id="send-btn" onclick="handleInput()" class="btn-jelly bg-[#006d33] hover:bg-[#005528] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md transition transform hover:rotate-12">
+                    <button id="send-btn" onclick="window.handleInput()" class="btn-jelly bg-[#006d33] hover:bg-[#005528] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md transition transform hover:rotate-12">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 ml-0.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                         </svg>
@@ -79,7 +81,7 @@
         </section>
     </main>
 
-    <script>
+    <script type="module">
         let gameState = 'INTRO';
         let userName = '';
         let currentMode = ''; 
@@ -90,6 +92,10 @@
         let quizQuestionCount = 0;
         const QUIZ_TOTAL = 25;
         let quizCorrect = 0;
+
+        // Forceer authenticatie via hub als er geen currentLumiID is opgeslagen.
+        const currentLumiID = sessionStorage.getItem('lumi_user_id');
+        if(!currentLumiID) { window.location.href = 'https://lumihub-five.vercel.app'; }
 
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
@@ -105,7 +111,7 @@
             gameState = 'NAME';
         };
 
-        function handleInput() {
+        window.handleInput = function() {
             const text = userInput.value.trim();
             if (!text) return;
             addUserMessage(text);
@@ -116,10 +122,10 @@
         }
 
         userInput.addEventListener("keypress", (e) => { 
-            if (e.key === "Enter" && !userInput.disabled) handleInput(); 
+            if (e.key === "Enter" && !userInput.disabled) window.handleInput(); 
         });
 
-        function backToMenu() {
+        window.backToMenu = function() {
             if (gameState === 'INTRO' || gameState === 'NAME') return;
             isQuizMode = false; 
             gameState = 'CHOOSE_MODE';
@@ -127,7 +133,7 @@
             showModeOptions();
         }
 
-        function startQuizSetup() {
+        window.startQuizSetup = function() {
             if (gameState === 'INTRO' || gameState === 'NAME') {
                 addLumiMessage("Eerst even kennismaken! Hoe heet je?");
                 return;
@@ -249,7 +255,7 @@
                 }
             } else {
                 streak = 0; updateScoreBoard();
-                lumiPoke(); 
+                window.lumiPoke(); 
                 
                 userInput.parentElement.classList.add('ring-red-400', 'shake');
                 setTimeout(() => userInput.parentElement.classList.remove('ring-red-400', 'shake'), 500);
@@ -331,7 +337,7 @@
 
         function scrollToBottom() { chatContainer.scrollTop = chatContainer.scrollHeight; }
         
-        function lumiPoke() {
+        window.lumiPoke = function() {
             if(!lumiImg) return;
             lumiImg.classList.remove('lumi-float'); void lumiImg.offsetWidth; lumiImg.classList.add('shake');
             setTimeout(() => { lumiImg.classList.remove('shake'); lumiImg.classList.add('lumi-float'); }, 500);

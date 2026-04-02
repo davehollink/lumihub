@@ -12,7 +12,7 @@
 </head>
 <body class="animated-bg h-screen w-screen overflow-hidden flex items-center justify-center relative">
 
-    <button onclick="window.location.href='hub.html'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
+    <button onclick="window.location.href='https://lumihub-five.vercel.app'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
         🏠 Terug naar Hub
     </button>
     
@@ -80,7 +80,7 @@
             
             <div class="mt-8 text-center flex gap-4 justify-center">
                 <button onclick="closePackOverlay()" class="text-gray-300 underline text-sm hover:text-white">Terug naar Lumi</button>
-                <button onclick="window.location.href='hub.html'" class="text-[#FFD700] font-bold underline text-sm hover:text-white">Naar de Hub & Album</button>
+                <button onclick="window.location.href='https://lumihub-five.vercel.app'" class="text-[#FFD700] font-bold underline text-sm hover:text-white">Naar de Hub & Album</button>
             </div>
         </div>
     </div>
@@ -104,7 +104,7 @@
         const currentLumiID = sessionStorage.getItem('lumi_user_id');
 
         // Forceer login via Hub
-        if(!currentLumiID) { window.location.href = 'hub.html'; }
+        if(!currentLumiID) { window.location.href = 'https://lumihub-five.vercel.app'; }
 
         const allCards = [
             "Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg",
@@ -505,7 +505,7 @@
             doc.text("Vergeet niet dit verslag in te leveren bij je leerkracht!", 105, 282, { align: 'center' });
 
             if (currentCardFilename) {
-                getDataUri(currentCardFilename, function(dataUri) { // Geen 'cards/' map prefix
+                getDataUri(currentCardFilename, function(dataUri) { 
                     if(dataUri) {
                         doc.addPage(); doc.setFillColor(...donkerGroen); doc.rect(0, 0, 210, 297, 'F');
                         doc.setTextColor(255, 255, 255); doc.setFontSize(24); doc.setFont("helvetica", "bold");
