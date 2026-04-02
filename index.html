@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumi Hub - Kies je Bot</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared-style.css">
+    <link rel="stylesheet" href="hub-style.css">
+</head>
+<body class="animated-bg h-screen w-screen overflow-x-hidden flex items-center justify-center relative p-4">
+
+    <button onclick="openAlbum()" class="absolute top-4 right-4 z-50 bg-white/20 backdrop-blur-md border border-white/50 text-[#006d33] bg-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white/90 transition flex items-center gap-2">
+        📖 Mijn Album
+    </button>
+
+    <div class="hub-container glass-panel relative z-10 w-full">
+        <img src="logoikc.svg" alt="IKC Binnenstebuiten" class="h-20 mx-auto mb-6 opacity-90" onerror="this.style.display='none'">
+        
+        <h1>Welkom bij Lumi! 👋</h1>
+        <p>Welke bot wil je vandaag gebruiken?</p>
+
+        <div class="bot-grid">
+            <div class="bot-card" onclick="window.location.href='actua-lumi.html'">
+                <a href="actua-lumi.html" class="bot-img-link">
+                    <img src="lumi1.jpeg" alt="Lumi - Actua" onerror="this.src='https://raw.githubusercontent.com/Lumi-Bot/Lumi-Assets/main/lumi-vogel.png'; this.onerror=null;">
+                </a>
+                <h3>Actua Lumi</h3>
+            </div>
+
+            <div class="bot-card" onclick="window.location.href='boekverslag-lumi.html'">
+                <a href="boekverslag-lumi.html" class="bot-img-link">
+                    <img src="lumi2.jpeg" alt="Lumi - Boekverslag" onerror="this.src='https://raw.githubusercontent.com/Lumi-Bot/Lumi-Assets/main/lumi-vogel.png'; this.onerror=null;">
+                </a>
+                <h3>Boekverslag Lumi</h3>
+            </div>
+
+            <div class="bot-card" onclick="window.location.href='rekenbot-lumi.html'">
+                <a href="rekenbot-lumi.html" class="bot-img-link">
+                    <img src="lumi3.png" alt="Lumi - Rekenbot" onerror="this.src='https://raw.githubusercontent.com/Lumi-Bot/Lumi-Assets/main/lumi-vogel.png'; this.onerror=null;">
+                </a>
+                <h3>Rekenbot Lumi</h3>
+            </div>
+        </div>
+    </div>
+
+    <div id="album-overlay">
+        <button onclick="closeAlbum()" class="close-sticky-btn">❌</button>
+
+        <div class="album-content-wrapper">
+            <div class="w-full flex justify-center mb-6 border-b border-white/20 pb-4">
+                <h1 class="text-4xl font-black text-white">📖 Mijn Spaarboek</h1>
+            </div>
+            
+            <div class="w-[90%] bg-black/30 rounded-full h-6 mb-8 relative border border-white/30">
+                <div id="album-progress" class="h-full bg-gradient-to-r from-[#006d33] to-[#95c11f] rounded-full transition-all duration-1000" style="width: 0%"></div>
+                <span id="album-stats" class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-xs font-bold text-white tracking-wider">0 / 22 Compleet</span>
+            </div>
+
+            <div id="album-grid-container" class="album-grid"></div>
+
+            <button onclick="resetAlbum()" class="mt-8 mb-8 text-xs text-red-400 hover:text-red-200 underline opacity-50">
+                ⚠️ Album wissen (Opnieuw beginnen)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const allCards = [
+            "Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg",
+            "Lumi - FC Groningen kaart.jpeg", "Lumi - Fc Twente kaart.jpeg", "Lumi - Fc Utrecht kaart.jpeg",
+            "Lumi - Feyenoord kaart.jpeg", "Lumi - Fortuna Sittard kaart.jpeg", "Lumi - GAE Kaart.jpeg",
+            "Lumi - Heracles Almelo Kaart.jpeg", "Lumi - Jonge kracht kaart.jpeg", "Lumi - NAC Breda kaart.jpeg",
+            "Lumi - NEC kaart.jpeg", "Lumi - PEC Zwolle kaart.jpeg", "Lumi - PSV kaart.jpeg",
+            "Lumi - RKHVV kaart.jpeg", "Lumi - SC Heerenveen kaart.jpeg", "Lumi - Sparta rotterdam kaart.jpeg",
+            "Lumi - Telstar Kaart.jpeg", "Lumi - Vitesse kaart.jpeg", "Lumi - Volendam Kaart.jpeg", "Lumi - Westervoort kaart.jpeg"
+        ];
+
+        function getCollection() {
+            const saved = localStorage.getItem('lumi_collection');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function openAlbum() {
+            const overlay = document.getElementById('album-overlay');
+            const grid = document.getElementById('album-grid-container');
+            const collection = getCollection();
+            const progress = document.getElementById('album-progress');
+            const stats = document.getElementById('album-stats');
+
+            grid.innerHTML = "";
+
+            allCards.forEach((cardFile, index) => {
+                const isOwned = collection.includes(cardFile);
+                const slot = document.createElement('div');
+                slot.className = `album-slot ${isOwned ? 'unlocked' : 'locked'}`;
+                
+                if(isOwned) {
+                    slot.onclick = () => window.open(`cards/${cardFile}`, '_blank');
+                    slot.title = "Klik om te downloaden";
+                    const img = document.createElement('img');
+                    img.src = `cards/${cardFile}`;
+                    img.loading = "lazy";
+                    slot.appendChild(img);
+                } else {
+                    const mysteryMark = document.createElement('div');
+                    mysteryMark.className = "mystery-mark";
+                    mysteryMark.innerText = "?";
+                    slot.appendChild(mysteryMark);
+                }
+                
+                const num = document.createElement('div');
+                num.className = "slot-number";
+                num.innerText = `#${index + 1}`;
+
+                slot.appendChild(num);
+                grid.appendChild(slot);
+            });
+
+            const percentage = (collection.length / allCards.length) * 100;
+            progress.style.width = `${percentage}%`;
+            stats.innerText = `${collection.length} / ${allCards.length} Verzameld`;
+
+            overlay.style.display = 'block'; 
+        }
+
+        function closeAlbum() { document.getElementById('album-overlay').style.display = 'none'; }
+        
+        function resetAlbum() {
+            if(confirm("Weet je zeker dat je je hele album wilt wissen?")) {
+                localStorage.removeItem('lumi_collection');
+                openAlbum();
+            }
+        }
+    </script>
+</body>
+</html>
