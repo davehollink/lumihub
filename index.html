@@ -14,9 +14,15 @@
     <div id="login-overlay" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4" style="display: none;">
         <div class="glass-panel p-8 max-w-md w-full text-center border-t-8 border-[#95c11f]">
             <h2 class="text-3xl font-black text-[#006d33] mb-2">Hoi! Wie ben jij?</h2>
-            <p class="text-gray-600 mb-6 font-semibold">Voer je Lumi-Code in om je album te openen.</p>
-            <input type="text" id="lumi-id-input" placeholder="Bijv: Voornaam-Groep" class="w-full p-4 rounded-2xl border-2 border-[#95c11f] outline-none text-center text-xl font-bold mb-4 focus:ring-4 ring-[#95c11f]/20 transition-all uppercase">
-            <button onclick="loginUser()" class="btn-jelly w-full bg-[#006d33] text-white py-4 rounded-2xl font-black text-xl shadow-lg">STARTEN</button>
+            <p class="text-gray-600 mb-4 font-semibold">Voer je Lumi-Code in om je album te openen.</p>
+            
+            <div class="bg-[#f0f9eb] border border-[#95c11f]/30 p-3 rounded-xl mb-4 text-sm text-[#006d33] leading-relaxed">
+                <strong>Instructie:</strong> Gebruik je voornaam + verjaardag.<br>
+                <span class="opacity-75 italic">(bijv: voornaam+verjaardag dus <strong>dave1903</strong>)</span>
+            </div>
+
+            <input type="text" id="lumi-id-input" placeholder="VOORNAAM+DATUM" class="w-full p-4 rounded-2xl border-2 border-[#95c11f] outline-none text-center text-xl font-bold mb-4 focus:ring-4 ring-[#95c11f]/20 transition-all uppercase">
+            <button onclick="loginUser()" class="btn-jelly w-full bg-[#006d33] text-white py-4 rounded-2xl font-black text-xl shadow-lg hover:bg-[#005528] transition-colors">STARTEN</button>
         </div>
     </div>
 
@@ -78,7 +84,7 @@
         const allCards = ["Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg", "Lumi - FC Groningen kaart.jpeg", "Lumi - Fc Twente kaart.jpeg", "Lumi - Fc Utrecht kaart.jpeg", "Lumi - Feyenoord kaart.jpeg", "Lumi - Fortuna Sittard kaart.jpeg", "Lumi - GAE Kaart.jpeg", "Lumi - Heracles Almelo Kaart.jpeg", "Lumi - Jonge kracht kaart.jpeg", "Lumi - NAC Breda kaart.jpeg", "Lumi - NEC kaart.jpeg", "Lumi - PEC Zwolle kaart.jpeg", "Lumi - PSV kaart.jpeg", "Lumi - RKHVV kaart.jpeg", "Lumi - SC Heerenveen kaart.jpeg", "Lumi - Sparta rotterdam kaart.jpeg", "Lumi - Telstar Kaart.jpeg", "Lumi - Vitesse kaart.jpeg", "Lumi - Volendam Kaart.jpeg", "Lumi - Westervoort kaart.jpeg"];
 
         window.loginUser = function() {
-            const id = document.getElementById('lumi-id-input').value.trim().toUpperCase();
+            const id = document.getElementById('lumi-id-input').value.trim().toLowerCase(); // We slaan alles op in kleine letters
             if(!id) return;
             currentLumiID = id;
             sessionStorage.setItem('lumi_user_id', id);
@@ -116,7 +122,7 @@
                 slot.className = `album-slot ${isOwned ? 'unlocked' : 'locked'}`;
                 if(isOwned) {
                     const img = document.createElement('img');
-                    img.src = cardFile; // Geen 'cards/' map meer
+                    img.src = cardFile; 
                     slot.appendChild(img);
                     slot.onclick = () => window.open(cardFile, '_blank');
                 } else {
