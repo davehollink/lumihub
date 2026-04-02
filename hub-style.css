@@ -1,0 +1,107 @@
+/* hub-style.css */
+
+/* De hoofdcontainer centreren, afronden en de glazen look geven */
+.hub-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    max-width: 1000px;
+    margin: 40px auto;
+    color: #006d33;
+    border-radius: 40px; /* Dit zorgt voor de mooie ronde hoeken! */
+    overflow: hidden;    /* Zorgt dat niks buiten de ronde hoeken steekt */
+}
+
+/* Titels in de hub */
+.hub-container h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.hub-container > p {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 60px; /* Meer ruimte onder de inleiding */
+    color: #ef7d00; /* Lumi Oranje */
+}
+
+/* De Grid voor de 3 kaarten */
+.bot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 gelijke kolommen */
+    gap: 40px; /* Meer spacing */
+    width: 100%;
+}
+
+/* De individuele kaarten met glassmorphism-stijl */
+.bot-card {
+    background: rgba(255, 255, 255, 0.6); /* Minder dekkend */
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 30px; /* Rondere hoeken */
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.4s ease; /* Iets langere transition */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    cursor: pointer;
+    overflow: hidden; /* Zorgt dat de hover effecten binnen de kaart blijven */
+}
+
+/* Het zweef-effect op de hele kaart */
+.bot-card:hover {
+    transform: translateY(-12px) scale(1.03); /* Beweegt iets omhoog en vergroot */
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 18px 40px rgba(0, 109, 51, 0.25);
+    border-color: #95c11f; /* IKC Lichtgroen */
+}
+
+/* Styling voor de klikbare uilen */
+.bot-img-link {
+    display: block;
+    width: 100%;
+    margin-bottom: 25px; /* Ruimte onder de uil */
+    transition: transform 0.3s ease;
+}
+
+.bot-card:hover .bot-img-link {
+    transform: scale(1.1); /* Vergroot de uil een beetje meer bij hover op de kaart */
+}
+
+.bot-card img {
+    max-width: 100%; /* Maakt de uil passend */
+    max-height: 200px; /* Beperk de hoogte voor consistentie */
+    height: auto;
+    object-contain: contain; /* Zorg dat de uil niet wordt vervormd */
+    display: block;
+    margin: 0 auto; /* Centreer de afbeelding */
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); /* Voeg schaduw toe aan de uil */
+}
+
+/* De labels onder de uilen */
+.bot-card h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #006d33;
+}
+
+/* Responsive voor tablets en telefoons (onder elkaar) */
+@media (max-width: 800px) {
+    .hub-container {
+        padding: 40px 20px;
+        margin: 20px auto;
+    }
+    .hub-container h1 { font-size: 2.2rem; }
+    .hub-container > p { margin-bottom: 40px; font-size: 1rem; }
+    .bot-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    .bot-card { padding: 25px; }
+    .bot-card h3 { font-size: 1.4rem; }
+}

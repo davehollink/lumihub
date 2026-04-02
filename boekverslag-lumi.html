@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumi's Boekenkring - IKC Binnenstebuiten</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="shared-style.css">
+</head>
+<body class="animated-bg h-screen w-screen overflow-hidden flex items-center justify-center relative">
+
+    <button onclick="window.location.href='hub.html'" class="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-md border border-white/50 text-[#006d33] px-4 py-2 rounded-full font-bold shadow-lg hover:bg-white transition flex items-center gap-2">
+        🏠 Terug naar Hub
+    </button>
+    
+    <div class="bubble w-24 h-24 left-[10%] animation-delay-0"></div>
+    <div class="bubble w-12 h-12 left-[30%] animation-delay-2000"></div>
+
+    <main class="glass-panel w-full max-w-6xl h-[95vh] rounded-[40px] flex flex-col md:flex-row shadow-2xl relative z-10 m-4 overflow-hidden">
+        <aside class="w-full md:w-1/3 bg-white/40 border-b md:border-b-0 md:border-r border-white/50 p-6 flex flex-col items-center justify-between relative">
+            <div class="w-full flex flex-col items-center">
+                <img src="logoikc.svg" alt="IKC" class="h-12 opacity-80 mb-4" onerror="this.style.display='none'">
+                <h1 class="text-[#006d33] text-2xl font-extrabold text-center leading-tight">Lumi's<br>Boekenkring</h1>
+            </div>
+
+            <div class="relative z-20 -my-2 md:-my-4 group cursor-pointer" onclick="lumiPoke()">
+                <img src="lumi2.jpeg" id="lumi-img" class="w-40 md:w-52 h-auto object-contain lumi-float drop-shadow-2xl rounded-full" 
+                     alt="Lumi" onerror="this.src='https://raw.githubusercontent.com/Lumi-Bot/Lumi-Assets/main/lumi-vogel.png'; this.onerror=null;">
+                <div class="absolute top-0 right-0 bg-white text-[#006d33] font-bold px-4 py-2 rounded-xl rounded-bl-none shadow-lg transform scale-0 group-hover:scale-100 transition-transform origin-bottom-left border-2 border-[#95c11f]">
+                    Ik lees mee! 📚
+                </div>
+            </div>
+
+            <div class="w-full bg-white/60 rounded-2xl p-4 shadow-sm border border-white">
+                <div class="flex justify-between items-center border-b border-gray-200/50 pb-2 mb-2">
+                    <span class="text-gray-500 font-semibold text-sm uppercase">Lezer</span>
+                    <span id="reader-name-display" class="text-xl font-black text-[#ef7d00] truncate max-w-[150px]">-</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500 font-semibold text-sm uppercase">Vraag</span>
+                    <span id="question-count-display" class="text-xl font-bold text-[#95c11f]">Start</span>
+                </div>
+            </div>
+        </aside>
+
+        <section class="flex-1 flex flex-col relative bg-white/30 h-full">
+            <div id="chat-container" class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide scroll-smooth pb-32"></div>
+
+            <div class="w-full p-6 bg-gradient-to-t from-white/80 to-transparent z-20">
+                <div id="input-bar-wrapper" class="flex items-center gap-2 bg-white rounded-full p-2 pl-6 shadow-xl border border-gray-100 ring-4 ring-transparent focus-within:ring-[#ef7d00]/20 transition-all">
+                    <input type="text" id="user-input" class="flex-1 bg-transparent border-none outline-none text-lg text-gray-700 placeholder-gray-400 font-semibold" placeholder="Even wachten op Lumi..." disabled autocomplete="off">
+                    <button id="send-btn" onclick="handleInput()" disabled class="btn-jelly bg-[#006d33] hover:bg-[#005528] disabled:bg-gray-300 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md transition transform hover:rotate-12">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 ml-0.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="pack-overlay">
+        <div id="pack-stage" class="gift-box-container text-center" onclick="openPackNow()">
+            <div class="gift-glow"></div>
+            <div class="gift-emoji">🎁</div>
+            <h2 class="text-2xl font-bold mt-8 animate-pulse text-yellow-300">Klik om te openen!</h2>
+        </div>
+
+        <div id="card-stage" class="card-reveal-container" style="display: none;">
+            <h1 class="text-4xl font-black text-[#FFD700] mb-4 drop-shadow-md text-center">🎉 GEFELICITEERD! 🎉</h1>
+            <img id="final-card-img" src="" alt="Jouw kaart">
+            <h3 id="final-card-name" class="text-2xl font-bold mt-2 text-white mb-6 text-center">...</h3>
+            
+            <a id="download-link-btn" href="#" target="_blank" class="download-btn btn-jelly">
+                📥 OPEN & DOWNLOAD
+            </a>
+            
+            <div class="mt-8 text-center flex gap-4 justify-center">
+                <button onclick="closePackOverlay()" class="text-gray-300 underline text-sm hover:text-white">Terug naar Lumi</button>
+                <button onclick="window.location.href='hub.html'" class="text-[#FFD700] font-bold underline text-sm hover:text-white">Naar de Hub & Album</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allCards = [
+            "Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg",
+            "Lumi - FC Groningen kaart.jpeg", "Lumi - Fc Twente kaart.jpeg", "Lumi - Fc Utrecht kaart.jpeg",
+            "Lumi - Feyenoord kaart.jpeg", "Lumi - Fortuna Sittard kaart.jpeg", "Lumi - GAE Kaart.jpeg",
+            "Lumi - Heracles Almelo Kaart.jpeg", "Lumi - Jonge kracht kaart.jpeg", "Lumi - NAC Breda kaart.jpeg",
+            "Lumi - NEC kaart.jpeg", "Lumi - PEC Zwolle kaart.jpeg", "Lumi - PSV kaart.jpeg",
+            "Lumi - RKHVV kaart.jpeg", "Lumi - SC Heerenveen kaart.jpeg", "Lumi - Sparta rotterdam kaart.jpeg",
+            "Lumi - Telstar Kaart.jpeg", "Lumi - Vitesse kaart.jpeg", "Lumi - Volendam Kaart.jpeg", "Lumi - Westervoort kaart.jpeg"
+        ];
+
+        const { jsPDF } = window.jspdf;
+        let step = 0;
+        let userName = "";
+        let answers = {};
+        let currentSessionQuestions = []; 
+        let typeWriterTimeout;
+        let rewardClaimed = false; 
+        let currentCardFilename = "";
+
+        const setupQuestions = [
+            { key: 'name', text: "Hoe-hoe! Wat leuk dat je er bent. Ik ben Lumi. Hoe heet jij?" },
+            { key: 'book_title', text: "Hoi {name}! Ik ben heel benieuwd. Welk boek heb je gelezen?" },
+            { key: 'author', text: "Een goede keuze! Weet je ook wie de schrijver is?" },
+            { key: 'protagonist', text: "En wie is de hoofdpersoon in het verhaal?" }
+        ];
+
+        const questionPool = [
+            { text: "Hoe ziet de hoofdpersoon eruit? Kun je hem of haar beschrijven?" },
+            { text: "Waar speelt het verhaal zich af? Is het een plek die jij kent?" },
+            { text: "Wat was het grootste probleem dat opgelost moest worden?" },
+            { text: "Hoe liep het verhaal uiteindelijk af? Was het een goed einde?" },
+            { text: "Wat vond jij het allerleukste stukje uit het boek?" },
+            { text: "Als jij de hoofdpersoon was, wat had jij dan anders gedaan?" },
+            { text: "Kwam er ook een slechterik voor in het boek? Wat deed die?" },
+            { text: "Welk cijfer zou je het boek geven van 1 tot 10? En waarom?" },
+            { text: "Heb je hard moeten lachen om een stukje? Welk stukje was dat?" },
+            { text: "Was het een spannend boek? Wanneer zat je op het puntje van je stoel?" },
+            { text: "Zou je vriendjes en vriendinnetjes aanraden dit boek ook te lezen?" },
+            { text: "Welk dier zou de hoofdpersoon zijn als hij of zij geen mens was?" },
+            { text: "Vond je de plaatjes in het boek mooi? Wat stond erop?" },
+            { text: "Als je de schrijver één vraag mocht stellen, wat zou dat zijn?" },
+            { text: "Verzin eens een andere titel voor het boek. Hoe zou het dan heten?" },
+            { text: "Leerde je iets van het verhaal? Zo ja, wat dan?" },
+            { text: "Was het verhaal vrolijk, verdrietig of misschien een beetje eng?" },
+            { text: "Welk personage zou je absoluut NIET als vriend willen hebben?" },
+            { text: "Stel dat er een film van komt, wie moet de hoofdrol spelen?" },
+            { text: "Hoelang heb je erover gedaan om het boek uit te lezen?" },
+            { text: "Zou je nog een boek van deze schrijver willen lezen?" },
+            { text: "Lijkt de hoofdpersoon een beetje op jou? Waarom wel of niet?" },
+            { text: "Wat was het saaiste stukje uit het boek?" },
+            { text: "Speelt het verhaal in de toekomst, het verleden of nu?" },
+            { text: "Wat at de hoofdpersoon het liefst?" },
+            { text: "Heeft het boek een mooie kaft? Wat staat er op de voorkant?" },
+            { text: "Als je toverkracht had, wat zou je dan aan het verhaal veranderen?" },
+            { text: "Werd de hoofdpersoon geholpen door vrienden? Wie waren dat?" },
+            { text: "Was het einde verrassend of wist je al hoe het zou aflopen?" },
+            { text: "Welke kleur past het beste bij dit boek? En waarom?" }
+        ];
+
+        // Achtergrondfuncties voor opslaan in Hub
+        function getCollection() {
+            const saved = localStorage.getItem('lumi_collection');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function addToCollection(filename) {
+            let collection = getCollection();
+            if (!collection.includes(filename)) {
+                collection.push(filename);
+                localStorage.setItem('lumi_collection', JSON.stringify(collection));
+            }
+        }
+
+        // --- PACK OPENING LOGICA ---
+        function startRewardSequence() {
+            if (rewardClaimed) return;
+            document.getElementById('pack-overlay').style.display = 'flex';
+            document.getElementById('pack-stage').style.display = 'block';
+            document.getElementById('card-stage').style.display = 'none';
+        }
+
+        function openPackNow() {
+            if (rewardClaimed) return; 
+            rewardClaimed = true; 
+            
+            const mainBtn = document.getElementById('main-reward-btn');
+            if(mainBtn) {
+                mainBtn.innerText = "🎁 Beloning Geopend!";
+                mainBtn.classList.remove('reward-btn-glow');
+                mainBtn.classList.add('reward-btn-done');
+                mainBtn.removeAttribute('onclick');
+            }
+
+            const packStage = document.getElementById('pack-stage');
+            const cardStage = document.getElementById('card-stage');
+            const cardImg = document.getElementById('final-card-img');
+            const cardName = document.getElementById('final-card-name');
+            const overlay = document.getElementById('pack-overlay');
+            const downloadLink = document.getElementById('download-link-btn');
+
+            packStage.style.pointerEvents = "none";
+            packStage.classList.add('pack-shake');
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            
+            setTimeout(() => {
+                packStage.classList.remove('pack-shake');
+                packStage.style.display = 'none';
+                overlay.classList.add('flash-effect');
+                setTimeout(() => overlay.classList.remove('flash-effect'), 800);
+
+                const randomIndex = Math.floor(Math.random() * allCards.length);
+                const selectedCardFilename = allCards[randomIndex];
+                currentCardFilename = selectedCardFilename;
+                
+                addToCollection(selectedCardFilename);
+
+                cardImg.src = `cards/${selectedCardFilename}`;
+                const niceName = selectedCardFilename.replace("Lumi - ", "").replace(".jpeg", "").replace(".jpg", "");
+                cardName.innerText = niceName;
+
+                downloadLink.href = `cards/${selectedCardFilename}`;
+                downloadLink.setAttribute("download", selectedCardFilename); 
+                
+                cardStage.style.display = 'flex'; 
+                
+                var duration = 3000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+                var interval = setInterval(function() {
+                  var timeLeft = animationEnd - Date.now();
+                  if (timeLeft <= 0) { return clearInterval(interval); }
+                  var particleCount = 50 * (timeLeft / duration);
+                  confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+                }, 250);
+            }, 2000);
+        }
+
+        function closePackOverlay() { document.getElementById('pack-overlay').style.display = 'none'; }
+
+        // --- CHAT LOGICA ---
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const readerNameDisplay = document.getElementById('reader-name-display');
+        const questionCountDisplay = document.getElementById('question-count-display');
+
+        window.onload = () => initChat();
+
+        function initChat() {
+            step = 0; userName = ""; answers = {}; userInput.value = ""; chatContainer.innerHTML = ""; rewardClaimed = false;
+            
+            const shuffledPool = questionPool.sort(() => 0.5 - Math.random());
+            const selectedQuestions = shuffledPool.slice(0, 7).map((q, index) => ({
+                key: `random_${index}`, text: q.text
+            }));
+            
+            currentSessionQuestions = [...setupQuestions, ...selectedQuestions];
+            
+            userInput.disabled = true; 
+            sendBtn.disabled = true; 
+            readerNameDisplay.innerText = "-"; 
+            questionCountDisplay.innerText = "Start";
+            
+            askQuestion();
+        }
+
+        function typeWriter(element, text, speed = 15) {
+            let i = 0;
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            userInput.placeholder = "Lumi is aan het typen...";
+            element.classList.add('typing-cursor');
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    typeWriterTimeout = setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing-cursor');
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    userInput.placeholder = "Typ je antwoord...";
+                    userInput.focus();
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            }
+            type();
+        }
+
+        function askQuestion() {
+            if (step < currentSessionQuestions.length) {
+                let displayCount = step > 2 ? (step - 2) : "Start"; 
+                questionCountDisplay.innerText = displayCount;
+
+                userInput.disabled = true;
+                sendBtn.disabled = true;
+                userInput.placeholder = "Even wachten op Lumi...";
+
+                let txt = currentSessionQuestions[step].text.replace("{name}", userName);
+                setTimeout(() => addLumiMessage(txt, step), 600);
+            } else { finishChat(); }
+        }
+
+        function handleInput() {
+            const txt = userInput.value.trim(); if (!txt) return;
+            
+            const currentKey = currentSessionQuestions[step].key;
+            if (currentKey === 'name') {
+                let cleanName = txt.replace(/^(ik ben|ik heet|mijn naam is)\s+/i, '').replace(/[.!]+$/, '').trim();
+                cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+                userName = cleanName;
+                readerNameDisplay.innerText = userName;
+            }
+
+            addUserMessage(txt, step); 
+            userInput.value = '';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            userInput.placeholder = "Even wachten op Lumi...";
+            
+            answers[currentKey] = txt; 
+            
+            step++; askQuestion();
+        }
+        
+        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter" && !userInput.disabled) handleInput(); });
+
+        function handleRefreshQuestion(stepIndex, bubbleElement) {
+            clearTimeout(typeWriterTimeout);
+            const usedQuestions = currentSessionQuestions.map(q => q.text);
+            const availableQuestions = questionPool.filter(q => !usedQuestions.includes(q.text));
+            
+            if (availableQuestions.length > 0) {
+                const newQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+                currentSessionQuestions[stepIndex].text = newQuestion.text;
+                bubbleElement.innerHTML = "";
+                let newText = newQuestion.text.replace("{name}", userName);
+                typeWriter(bubbleElement, newText);
+            } else { 
+                alert("Lumi weet even geen andere vragen meer!"); 
+            }
+        }
+
+        function addLumiMessage(text, stepIndex) {
+            const div = document.createElement('div'); 
+            div.className = "flex w-full fade-in-up justify-start items-end gap-3 pl-2 mb-4 group lumi-message-container";
+            
+            const icon = document.createElement('img');
+            icon.src = "lumi2.jpeg"; icon.alt = "L"; 
+            icon.className = "w-10 h-10 rounded-full object-cover border-2 border-white shadow-md bg-white flex-shrink-0";
+            
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = "flex flex-col gap-1 max-w-[85%]";
+
+            const bubble = document.createElement('div');
+            bubble.className = "bg-[#e3f2fd] border border-[#bbdefb] text-[#0d47a1] p-4 rounded-2xl rounded-bl-none text-lg font-medium leading-relaxed";
+            
+            div.appendChild(icon);
+            bubbleWrapper.appendChild(bubble);
+
+            if (currentSessionQuestions[stepIndex] && 
+                currentSessionQuestions[stepIndex].key && 
+                currentSessionQuestions[stepIndex].key.startsWith('random_')) {
+                const refreshBtn = document.createElement('button');
+                refreshBtn.className = "action-icon-btn self-start ml-2 text-gray-400 hover:text-[#ef7d00] focus:outline-none";
+                refreshBtn.innerHTML = `<span class="text-xs font-bold flex items-center gap-1">🔄 Andere vraag?</span>`;
+                refreshBtn.onclick = function() { handleRefreshQuestion(stepIndex, bubble); };
+                bubbleWrapper.appendChild(refreshBtn);
+            }
+
+            div.appendChild(bubbleWrapper);
+            chatContainer.appendChild(div);
+            
+            typeWriter(bubble, text);
+        }
+
+        function addUserMessage(text, stepIndex) {
+            const div = document.createElement('div'); 
+            div.className = "flex w-full fade-in-up justify-end pr-2 mb-4 user-message-group";
+            div.setAttribute('data-step', stepIndex); 
+
+            const bubbleWrapper = document.createElement('div');
+            bubbleWrapper.className = "flex flex-col items-end max-w-[80%]";
+
+            const bubble = document.createElement('div');
+            bubble.className = "bg-[#006d33] text-white p-4 rounded-2xl rounded-br-none";
+            bubble.innerText = text;
+
+            const undoBtn = document.createElement('div');
+            undoBtn.className = "undo-btn";
+            undoBtn.innerText = "↩ Wijzig";
+            undoBtn.onclick = function() { undoLastStep(div, stepIndex); };
+
+            bubbleWrapper.appendChild(bubble);
+            bubbleWrapper.appendChild(undoBtn);
+            div.appendChild(bubbleWrapper);
+
+            chatContainer.appendChild(div); 
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function undoLastStep(userMessageDiv, stepToUndo) {
+            clearTimeout(typeWriterTimeout);
+            userMessageDiv.remove();
+            
+            const lastLumi = document.querySelector('.lumi-message-container:last-child');
+            if(lastLumi) lastLumi.remove();
+
+            step = stepToUndo; 
+            const keyToReset = currentSessionQuestions[step].key;
+            delete answers[keyToReset];
+
+            if (keyToReset === 'name') {
+                userName = "";
+                readerNameDisplay.innerText = "-";
+            }
+
+            let displayCount = step > 2 ? (step - 2) : "Start"; 
+            questionCountDisplay.innerText = displayCount;
+
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.placeholder = "Typ opnieuw...";
+            userInput.focus();
+            
+            let txt = currentSessionQuestions[step].text.replace("{name}", userName);
+            setTimeout(() => addLumiMessage(txt, step), 200);
+        }
+
+        function finishChat() {
+            setTimeout(() => {
+                const div = document.createElement('div'); 
+                div.className = "flex w-full fade-in-up justify-start items-end gap-3 pl-2 mb-4";
+                div.innerHTML = `<img src="lumi2.jpeg" class="w-10 h-10 rounded-full border-2 border-white"><div class="bg-[#e3f2fd] border border-[#bbdefb] text-[#0d47a1] p-4 rounded-2xl rounded-bl-none max-w-[85%]">Klaar! Pak je beloning!<br><button id="main-reward-btn" onclick='startRewardSequence()' class='reward-btn-glow btn-jelly mt-4 text-white font-black text-xl py-3 px-6 rounded-2xl w-full'>🎁 BELONING</button><div class='flex gap-2 mt-2'><button onclick='generatePDF()' class='bg-orange-500 text-white px-4 py-2 rounded-xl text-sm'>📥 PDF</button><button onclick='initChat()' class='bg-green-700 text-white px-4 py-2 rounded-xl text-sm'>🔄 Nieuw</button></div></div>`;
+                chatContainer.appendChild(div); 
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                userInput.placeholder = "Klaar!";
+                triggerConfetti();
+            }, 800);
+        }
+
+        // --- PDF GENERATOR ---
+        function getDataUri(url, callback) {
+            var image = new Image();
+            image.setAttribute('crossOrigin', 'anonymous');
+            image.onload = function () {
+                var canvas = document.createElement('canvas');
+                canvas.width = this.naturalWidth;
+                canvas.height = this.naturalHeight;
+                canvas.getContext('2d').drawImage(this, 0, 0);
+                try { callback(canvas.toDataURL('image/jpeg')); } catch(e) { callback(null); }
+            };
+            image.onerror = function() { callback(null); };
+            image.src = url;
+        }
+
+        function generatePDF() {
+            const doc = new jsPDF();
+            const donkerGroen = [0, 109, 51];
+            const oranje = [239, 125, 0];
+            
+            doc.setFillColor(...donkerGroen);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("LUMI'S BOEKVERSLAG", 105, 20, { align: 'center' }); 
+            
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "normal");
+            doc.text("IKC Binnenstebuiten", 105, 32, { align: 'center' }); 
+
+            doc.setTextColor(0, 0, 0); 
+            doc.setFontSize(11);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Lezer:", 20, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(userName, 45, 50);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Datum:", 140, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(new Date().toLocaleDateString('nl-NL'), 160, 50);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Boek:", 20, 60);
+            doc.setFont("helvetica", "normal");
+            doc.text(answers['book_title'] || "-", 45, 60);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Schrijver:", 20, 70);
+            doc.setFont("helvetica", "normal");
+            doc.text(answers['author'] || "-", 45, 70);
+
+            let y = 85;
+            const pageHeight = 297;
+            const marginBottom = 20;
+            const maxLineWidth = 170;
+            const leftMargin = 20;
+
+            for (let i = 3; i < currentSessionQuestions.length; i++) {
+                const qObj = currentSessionQuestions[i];
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 109, 51);
+                const questionClean = qObj.text.replace("{name}", userName);
+                const questionLines = doc.splitTextToSize(questionClean, maxLineWidth);
+                const questionHeight = questionLines.length * 7;
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 0);
+                const answerText = answers[qObj.key] || "-";
+                const answerLines = doc.splitTextToSize(answerText, maxLineWidth);
+                const answerHeight = answerLines.length * 7;
+
+                const blockHeight = questionHeight + answerHeight + 10;
+
+                if (y + blockHeight > (pageHeight - marginBottom)) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 109, 51);
+                doc.text(questionLines, leftMargin, y);
+                y += questionHeight;
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0, 0, 0);
+                doc.text(answerLines, leftMargin, y);
+                y += answerHeight + 5;
+            }
+
+            if (y > 260) { doc.addPage(); y = 20; }
+            doc.setDrawColor(...oranje);
+            doc.setLineWidth(1);
+            doc.line(20, 275, 190, 275);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(80, 80, 80);
+            doc.text("Vergeet niet dit verslag in te leveren bij je leerkracht!", 105, 282, { align: 'center' });
+
+            if (currentCardFilename) {
+                getDataUri(`cards/${currentCardFilename}`, function(dataUri) {
+                    if(dataUri) {
+                        doc.addPage();
+                        doc.setFillColor(...donkerGroen);
+                        doc.rect(0, 0, 210, 297, 'F');
+                        
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(24);
+                        doc.setFont("helvetica", "bold");
+                        doc.text("JOUW VERDIENDE BELONING", 105, 30, { align: 'center' });
+                        
+                        doc.addImage(dataUri, 'JPEG', 35, 50, 140, 200);
+                    }
+                    doc.save(`Boekverslag_${userName}.pdf`);
+                });
+            } else {
+                doc.save(`Boekverslag_${userName}.pdf`);
+            }
+        }
+
+        function lumiPoke() { document.getElementById('lumi-img').classList.add('shake'); setTimeout(()=>document.getElementById('lumi-img').classList.remove('shake'),500); }
+        function triggerConfetti() { confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } }); }
+    </script>
+</body>
+</html>
