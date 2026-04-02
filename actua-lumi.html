@@ -85,7 +85,27 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuratie
+        const firebaseConfig = {
+            apiKey: "AIzaSyBoohDPXVol8kLllJ6ox28xOfQd5fBdLc8",
+            authDomain: "lumi-binnenstebuiten.firebaseapp.com",
+            projectId: "lumi-binnenstebuiten",
+            storageBucket: "lumi-binnenstebuiten.firebasestorage.app",
+            messagingSenderId: "776211154870",
+            appId: "1:776211154870:web:998936db277f8c92a8a317"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const currentLumiID = sessionStorage.getItem('lumi_user_id');
+
+        // Forceer login via Hub
+        if(!currentLumiID) { window.location.href = 'hub.html'; }
+
         const allCards = [
             "Lumi - Ajax kaart.jpeg", "Lumi - AZ Kaart.jpeg", "Lumi - Excelsior kaart.jpeg",
             "Lumi - Fc Twente kaart.jpeg", "Lumi - Fc Utrecht kaart.jpeg", "Lumi - Feyenoord kaart.jpeg",
@@ -105,29 +125,28 @@
         let rewardClaimed = false; 
         let currentCardFilename = "";
 
-        // Achtergrondfuncties voor opslaan in Hub
-        function getCollection() {
-            const saved = localStorage.getItem('lumi_collection');
-            return saved ? JSON.parse(saved) : [];
-        }
-
-        function addToCollection(filename) {
-            let collection = getCollection();
-            if (!collection.includes(filename)) {
-                collection.push(filename);
-                localStorage.setItem('lumi_collection', JSON.stringify(collection));
+        // Firebase Opslag Functie
+        window.addToCollection = async function(filename) {
+            const userRef = doc(db, "users", currentLumiID);
+            try {
+                await updateDoc(userRef, {
+                    collection: arrayUnion(filename)
+                });
+                console.log("Kaart opgeslagen in cloud!");
+            } catch (e) {
+                console.error("Fout bij opslaan:", e);
             }
         }
 
         // --- PACK OPENING LOGICA ---
-        function startRewardSequence() {
+        window.startRewardSequence = function() {
             if (rewardClaimed) return;
             document.getElementById('pack-overlay').style.display = 'flex';
             document.getElementById('pack-stage').style.display = 'block';
             document.getElementById('card-stage').style.display = 'none';
         }
 
-        function openPackNow() {
+        window.openPackNow = function() {
             if (rewardClaimed) return; 
             rewardClaimed = true; 
             
@@ -147,7 +166,6 @@
             const downloadLink = document.getElementById('download-link-btn');
 
             packStage.style.pointerEvents = "none";
-
             packStage.classList.add('pack-shake');
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             
@@ -161,13 +179,14 @@
                 const selectedCardFilename = allCards[randomIndex];
                 currentCardFilename = selectedCardFilename;
                 
-                addToCollection(selectedCardFilename);
+                // Opslaan in Firebase
+                window.addToCollection(selectedCardFilename);
 
-                cardImg.src = `cards/${selectedCardFilename}`;
+                cardImg.src = selectedCardFilename; // Direct uit hoofdmap
                 const niceName = selectedCardFilename.replace("Lumi - ", "").replace(".jpeg", "").replace(".jpg", "");
                 cardName.innerText = niceName;
 
-                downloadLink.href = `cards/${selectedCardFilename}`;
+                downloadLink.href = selectedCardFilename;
                 downloadLink.setAttribute("download", selectedCardFilename); 
                 
                 cardStage.style.display = 'flex'; 
@@ -184,7 +203,7 @@
             }, 2000);
         }
 
-        function closePackOverlay() { document.getElementById('pack-overlay').style.display = 'none'; }
+        window.closePackOverlay = function() { document.getElementById('pack-overlay').style.display = 'none'; }
 
         // --- CHAT LOGICA ---
         const setupQuestions = [{ key: 'name', text: "Hoe-hoe! Welkom bij de Actuakring. Ik ben Lumi. Hoe heet jij?" }, { key: 'link', text: "Hoi {name}! Over welk artikel gaan we het hebben? Plak hier de link (URL) van het Jeugdjournaal of de nieuwswebsite." }, { key: 'confirm_title', text: "Ik heb naar de link gekeken. Ik denk dat de titel is: <br><strong>'{detected}'</strong><br>Klopt dat? (Druk op 'Ja' of typ zelf de goede titel)" }];
@@ -222,7 +241,7 @@
 
         window.onload = () => initChat();
 
-        function initChat() {
+        window.initChat = function() {
             step = 0; userName = ""; answers = {}; userInput.value = ""; chatContainer.innerHTML = ""; rewardClaimed = false;
             
             const shuffledPool = questionPool.sort(() => 0.5 - Math.random());
@@ -255,14 +274,12 @@
                     typeWriterTimeout = setTimeout(type, speed);
                 } else {
                     element.classList.remove('typing-cursor');
-                    
                     if (!currentSessionQuestions[step] || currentSessionQuestions[step].key !== 'confirm_title') {
                         userInput.disabled = false;
                         sendBtn.disabled = false;
                         userInput.placeholder = "Typ je antwoord...";
                         userInput.focus();
                     }
-                    
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }
             }
@@ -311,7 +328,7 @@
             }
         };
 
-        function handleInput() {
+        window.handleInput = function() {
             const txt = userInput.value.trim(); if (!txt) return;
             
             const currentKey = currentSessionQuestions[step].key;
@@ -337,9 +354,9 @@
             step++; askQuestion();
         }
         
-        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter" && !userInput.disabled) handleInput(); });
+        userInput.addEventListener("keypress", (e) => { if (e.key === "Enter" && !userInput.disabled) window.handleInput(); });
 
-        function handleRefreshQuestion(stepIndex, bubbleElement) {
+        window.handleRefreshQuestion = function(stepIndex, bubbleElement) {
             clearTimeout(typeWriterTimeout);
             const usedQuestions = currentSessionQuestions.map(q => q.text);
             const availableQuestions = questionPool.filter(q => !usedQuestions.includes(q.text));
@@ -388,7 +405,7 @@
                 const refreshBtn = document.createElement('button');
                 refreshBtn.className = "action-icon-btn self-start ml-2 text-gray-400 hover:text-[#ef7d00] focus:outline-none";
                 refreshBtn.innerHTML = `<span class="text-xs font-bold flex items-center gap-1">🔄 Andere vraag?</span>`;
-                refreshBtn.onclick = function() { handleRefreshQuestion(stepIndex, bubble); };
+                refreshBtn.onclick = function() { window.handleRefreshQuestion(stepIndex, bubble); };
                 bubbleWrapper.appendChild(refreshBtn);
             }
 
@@ -437,28 +454,18 @@
         function undoLastStep(userMessageDiv, stepToUndo) {
             clearTimeout(typeWriterTimeout);
             userMessageDiv.remove();
-            
             const lastLumi = document.querySelector('.lumi-message-container:last-child');
             if(lastLumi) lastLumi.remove();
-
             step = stepToUndo; 
             const keyToReset = currentSessionQuestions[step].key;
             delete answers[keyToReset];
-
-            if (keyToReset === 'name') {
-                userName = "";
-                readerNameDisplay.innerText = "-";
-            }
-
-            let displayCount = step - 2; 
-            if (displayCount < 1) displayCount = "Start";
+            if (keyToReset === 'name') { userName = ""; readerNameDisplay.innerText = "-"; }
+            let displayCount = step - 2; if (displayCount < 1) displayCount = "Start";
             questionCountDisplay.innerText = displayCount;
-
             userInput.disabled = false;
             sendBtn.disabled = false;
             userInput.placeholder = "Typ opnieuw...";
             userInput.focus();
-            
             let txt = currentSessionQuestions[step].text.replace("{name}", userName);
             if (currentSessionQuestions[step].key === 'confirm_title') {
                 txt = txt.replace("{detected}", answers['link'] ? extractTitleFromUrl(answers['link']) : '...');
@@ -470,7 +477,7 @@
             setTimeout(() => {
                 const div = document.createElement('div'); 
                 div.className = "flex w-full fade-in-up justify-start items-end gap-3 pl-2 mb-4";
-                div.innerHTML = `<img src="lumi1.jpeg" class="w-10 h-10 rounded-full border-2 border-white"><div class="bg-[#e3f2fd] border border-[#bbdefb] text-[#0d47a1] p-4 rounded-2xl rounded-bl-none max-w-[85%]">Klaar! Pak je beloning!<br><button id="main-reward-btn" onclick='startRewardSequence()' class='reward-btn-glow btn-jelly mt-4 text-white font-black text-xl py-3 px-6 rounded-2xl w-full'>🎁 BELONING</button><div class='flex gap-2 mt-2'><button onclick='generatePDF()' class='bg-orange-500 text-white px-4 py-2 rounded-xl text-sm'>📥 PDF</button><button onclick='initChat()' class='bg-green-700 text-white px-4 py-2 rounded-xl text-sm'>🔄 Nieuw</button></div></div>`;
+                div.innerHTML = `<img src="lumi1.jpeg" class="w-10 h-10 rounded-full border-2 border-white"><div class="bg-[#e3f2fd] border border-[#bbdefb] text-[#0d47a1] p-4 rounded-2xl rounded-bl-none max-w-[85%]">Klaar! Pak je beloning!<br><button id="main-reward-btn" onclick='window.startRewardSequence()' class='reward-btn-glow btn-jelly mt-4 text-white font-black text-xl py-3 px-6 rounded-2xl w-full'>🎁 BELONING</button><div class='flex gap-2 mt-2'><button onclick='window.generatePDF()' class='bg-orange-500 text-white px-4 py-2 rounded-xl text-sm'>📥 PDF</button><button onclick='window.initChat()' class='bg-green-700 text-white px-4 py-2 rounded-xl text-sm'>🔄 Nieuw</button></div></div>`;
                 chatContainer.appendChild(div); 
                 chatContainer.scrollTop = chatContainer.scrollHeight;
                 userInput.placeholder = "Klaar!";
@@ -493,125 +500,74 @@
             image.src = url;
         }
 
-        async function generatePDF() {
+        window.generatePDF = async function() {
             const doc = new jsPDF();
             const donkerGroen = [0, 109, 51];
-            
             doc.setFillColor(...donkerGroen);
             doc.rect(0, 0, 210, 40, 'F');
-            
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
             doc.setFont("helvetica", "bold");
             doc.text("LUMI'S ACTUAKRING", 105, 20, { align: 'center' }); 
-            
             doc.setFontSize(14);
             doc.setFont("helvetica", "normal");
             doc.text("IKC Binnenstebuiten", 105, 32, { align: 'center' }); 
-
-            doc.setTextColor(0, 0, 0); 
-            doc.setFontSize(11);
-            
-            doc.setFont("helvetica", "bold");
-            doc.text("Reporter:", 20, 50);
-            doc.setFont("helvetica", "normal");
-            doc.text(userName, 50, 50);
-
-            doc.setFont("helvetica", "bold");
-            doc.text("Datum:", 20, 57);
-            doc.setFont("helvetica", "normal");
-            doc.text(new Date().toLocaleDateString('nl-NL'), 50, 57);
-
+            doc.setTextColor(0, 0, 0); doc.setFontSize(11);
+            doc.setFont("helvetica", "bold"); doc.text("Reporter:", 20, 50);
+            doc.setFont("helvetica", "normal"); doc.text(userName, 50, 50);
+            doc.setFont("helvetica", "bold"); doc.text("Datum:", 20, 57);
+            doc.setFont("helvetica", "normal"); doc.text(new Date().toLocaleDateString('nl-NL'), 50, 57);
             const displayTitle = answers['title'] || "Nieuwsbericht";
-            doc.setFont("helvetica", "bold");
-            doc.text("Onderwerp:", 20, 64);
-            doc.setFont("helvetica", "normal");
-            doc.text(displayTitle, 50, 64);
-
+            doc.setFont("helvetica", "bold"); doc.text("Onderwerp:", 20, 64);
+            doc.setFont("helvetica", "normal"); doc.text(displayTitle, 50, 64);
             const displayLink = answers['link'] || "";
-            let fullLink = displayLink;
-            if (fullLink && !fullLink.startsWith('http')) {
-                fullLink = 'https://' + fullLink;
-            }
+            let fullLink = displayLink; if (fullLink && !fullLink.startsWith('http')) { fullLink = 'https://' + fullLink; }
             const shortLink = displayLink.length > 50 ? displayLink.substring(0, 47) + "..." : displayLink;
-
-            doc.setFont("helvetica", "bold");
-            doc.text("Link:", 20, 71);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 255);
+            doc.setFont("helvetica", "bold"); doc.text("Link:", 20, 71);
+            doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 255);
             doc.textWithLink(shortLink, 50, 71, { url: fullLink });
             doc.setTextColor(0, 0, 0);
 
             let y = 85;
-            const pageHeight = 297;
-            const marginBottom = 20;
-            const maxLineWidth = 170;
-            const leftMargin = 20;
+            const pageHeight = 297; const marginBottom = 20; const maxLineWidth = 170; const leftMargin = 20;
 
             for (let i = 3; i < currentSessionQuestions.length; i++) {
                 const qObj = currentSessionQuestions[i];
-
-                doc.setFont("helvetica", "bold");
-                doc.setTextColor(0, 109, 51);
+                doc.setFont("helvetica", "bold"); doc.setTextColor(0, 109, 51);
                 const questionClean = qObj.text.replace("{name}", userName);
                 const questionLines = doc.splitTextToSize(questionClean, maxLineWidth);
                 const questionHeight = questionLines.length * 7;
-
-                doc.setFont("helvetica", "normal");
-                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
                 const answerText = answers[qObj.key] || "-";
                 const answerLines = doc.splitTextToSize(answerText, maxLineWidth);
                 const answerHeight = answerLines.length * 7;
-
                 const blockHeight = questionHeight + answerHeight + 10;
-
-                if (y + blockHeight > (pageHeight - marginBottom)) {
-                    doc.addPage();
-                    y = 20;
-                }
-
-                doc.setFont("helvetica", "bold");
-                doc.setTextColor(0, 109, 51);
-                doc.text(questionLines, leftMargin, y);
-                y += questionHeight;
-
-                doc.setFont("helvetica", "normal");
-                doc.setTextColor(0, 0, 0);
-                doc.text(answerLines, leftMargin, y);
-                y += answerHeight + 5;
+                if (y + blockHeight > (pageHeight - marginBottom)) { doc.addPage(); y = 20; }
+                doc.setFont("helvetica", "bold"); doc.setTextColor(0, 109, 51);
+                doc.text(questionLines, leftMargin, y); y += questionHeight;
+                doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
+                doc.text(answerLines, leftMargin, y); y += answerHeight + 5;
             }
 
             if (y > 260) { doc.addPage(); y = 20; }
-            doc.setDrawColor(239, 125, 0);
-            doc.setLineWidth(1);
-            doc.line(20, 275, 190, 275);
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "italic");
-            doc.setTextColor(80, 80, 80);
+            doc.setDrawColor(239, 125, 0); doc.setLineWidth(1); doc.line(20, 275, 190, 275);
+            doc.setFontSize(10); doc.setFont("helvetica", "italic"); doc.setTextColor(80, 80, 80);
             doc.text("Vergeet niet dit verslag in te leveren bij (of te laten zien aan) je leerkracht!", 105, 282, { align: 'center' });
 
             if (currentCardFilename) {
-                getDataUri(`cards/${currentCardFilename}`, function(dataUri) {
+                getDataUri(currentCardFilename, function(dataUri) { // Geen 'cards/' map prefix
                     if(dataUri) {
-                        doc.addPage();
-                        doc.setFillColor(...donkerGroen);
-                        doc.rect(0, 0, 210, 297, 'F');
-                        
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(24);
-                        doc.setFont("helvetica", "bold");
+                        doc.addPage(); doc.setFillColor(...donkerGroen); doc.rect(0, 0, 210, 297, 'F');
+                        doc.setTextColor(255, 255, 255); doc.setFontSize(24); doc.setFont("helvetica", "bold");
                         doc.text("JOUW VERDIENDE BELONING", 105, 30, { align: 'center' });
-                        
                         doc.addImage(dataUri, 'JPEG', 35, 50, 140, 200);
                     }
                     doc.save(`Verslag_${userName}.pdf`);
                 });
-            } else {
-                doc.save(`Verslag_${userName}.pdf`);
-            }
+            } else { doc.save(`Verslag_${userName}.pdf`); }
         }
 
-        function lumiPoke() { document.getElementById('lumi-img').classList.add('shake'); setTimeout(()=>document.getElementById('lumi-img').classList.remove('shake'),500); }
+        window.lumiPoke = function() { document.getElementById('lumi-img').classList.add('shake'); setTimeout(()=>document.getElementById('lumi-img').classList.remove('shake'),500); }
         function triggerConfetti() { confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } }); }
     </script>
 </body>
